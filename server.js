@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
+const instantPayRoutes = require("./routes/instantPay");
+
 const path = require('path');
 
 const app = express();
@@ -19,6 +21,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use("/api/instantpay", instantPayRoutes);
+
 
 app.get('/', (req, res) => {
   res.send({ success: true, message: 'Backend boilerplate running' });
