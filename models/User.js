@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema(
 
     profileImage: { type: String },
 
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user"
+    },
+
     wallet: {
       balance: { type: Number, default: 0 },
       lastUpdated: { type: Date, default: Date.now }
