@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
+const contactRoutes = require('./routes/contactRoutes');
 const instantPayRoutes = require("./routes/instantPay");
 
 const path = require('path');
@@ -24,6 +25,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/topup', topup); 
 app.use("/api/instantpay", instantPayRoutes);
+app.use("/api/contact", contactRoutes);
+
 
 
 app.get('/', (req, res) => {
