@@ -7,13 +7,14 @@ const instantPayRoutes = require("./routes/instantPay");
 
 const path = require('path');
 const topup = require('./routes/topuproute');
+const startWalletAutoFailCron = require('./service/cronjob');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
 connectDB();
-
+startWalletAutoFailCron()
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -22,7 +23,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/topup', topup); 
+app.use('/api/topup', topup);
 app.use("/api/instantpay", instantPayRoutes);
 
 
