@@ -164,13 +164,13 @@ exports.fastagPayment = async (req, res) => {
     });
     const apiData = response.data;
 
-    // CHECK SUCCESS
+  
     const isSuccess = apiData.statuscode === "TXN";
 
-    // DEFAULT BALANCE
+  
     let newBalance = user.wallet.balance;
 
-    // SUCCESS → WALLET DEDUCT
+  
     if (isSuccess) {
       newBalance = user.wallet.balance - Number(transactionAmount);
 
@@ -179,7 +179,7 @@ exports.fastagPayment = async (req, res) => {
       });
     }
 
-    // TRANSACTION REPORT ENTRY
+ 
     await Transaction.create({
       user_id: loginUser,
       transaction_type: "debit",
