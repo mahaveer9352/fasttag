@@ -4,6 +4,7 @@ const Transaction = require("../models/walletTranstion");
 const crypto = require("crypto");
 const qs = require("qs");
 const logApiCall = require("./logs");
+const { default: axios } = require("axios");
 
 
 const merchant_identifier = process.env.ZAAKPAY_MERCHANT_CODE || "b19e8f103bce406cbd3476431b6b7973"
@@ -37,9 +38,16 @@ exports.generatePayment = async (req, res, next) => {
     let transactionCompleted = false;
 
     try {
-        const { userId, amount, reference, email } = req.body;
 
-        if (!amount || !email) {
+        const { userId, amount, reference, email } = req.body;
+        if (amount > 100000) {
+            return res.status(400).json({
+                message: "maximum amount only 100000",
+                success: false
+            })
+        }
+
+        if (!amount || !email || !userId) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
@@ -78,24 +86,17 @@ exports.generatePayment = async (req, res, next) => {
 
         // 🔹 Prepare Zaakpay payload
         const payload = {
-            amount: (amount * 100).toString(),
-            buyerEmail: email,
-            currency: "INR",
-            merchantIdentifier: merchant_identifier,
-            orderId: reference || referenceId,
-            returnUrl: "https://vmm9pgj8-5000.inc1.devtunnels.ms/api/topup/wallet/callback"
+            amount: (amount).toString(),
+            email: email,
+            reference: referenceId
         };
         console.log("payload", payload)
-        const checksum = generateZaakpayChecksum(payload, secretKey);
-        console.log("checksum", checksum)
-
-        const payload2 = {
-            ...payload,
-            checksum,
-        };
-        console.log("payload2", payload2)
-        // return
         transaction.description = "Redirect to Zaakpay for payment";
+        const Response = await axios.post("https://server.finuniques.in/api/v1/payment/payin",
+            payload, {
+            headers: { "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTg0M2E4ZWZmNzA0ZjUwOWVlNzkyZSIsInJvbGUiOiJSZXRhaWxlciIsIm1vYmlsZU51bWJlciI6IjgwMDM3Njc3MzIiLCJpYXQiOjE3NjUzNjI3MjUsImV4cCI6MTc2Nzk1NDcyNX0.jCgTJTxbX3wQXri3YEpwV21lmVTQ-1BKWij491IQ_oo" }
+        }
+        )
 
         await user.save({ session });
         await transaction.save({ session });
@@ -103,9 +104,7 @@ exports.generatePayment = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: "PayIn initiated. Redirect user to complete payment.",
-            data: {
-                redirectURL: `https://api.zaakpay.com/api/paymentTransact/V8?${qs.stringify(payload2)}`,
-            },
+            ress: Response.data
         });
     } catch (error) {
         console.error("❌ PayIn Error:", error);
@@ -131,6 +130,7 @@ exports.callbackPayIn = async (req, res) => {
         const transaction = await Transaction.findOne({
             transaction_reference_id: data?.orderId
         });
+        console.log(transaction)
 
         if (!transaction) {
             return res.send("Transaction not found");
