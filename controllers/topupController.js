@@ -73,7 +73,7 @@ exports.generatePayment = async (req, res, next) => {
                     user_id: user._id,
                     transaction_type: "credit",
                     amount: Number(amount),
-                    type: " Top-up",
+                    type: "Top-up",
                     balance_after: user.wallet.balance,
                     payment_mode: "wallet",
                     transaction_reference_id: reference || referenceId,
@@ -130,7 +130,6 @@ exports.callbackPayIn = async (req, res) => {
         const transaction = await Transaction.findOne({
             transaction_reference_id: data?.orderId
         });
-        console.log(transaction)
 
         if (!transaction) {
             return res.send("Transaction not found");
@@ -257,6 +256,7 @@ exports.getWalletTransactions = async (req, res) => {
         const limit = Number(req.query.limit) || 10;
         const search = req.query.search || "";
         const status = req.query.status || "";
+        const type = req.query.type || "";
         const skip = (page - 1) * limit;
 
         const matchStage = {};
@@ -267,6 +267,9 @@ exports.getWalletTransactions = async (req, res) => {
         }
         if (status) {
             matchStage.status = status;
+        }
+        if (type) {
+            matchStage.type = type;
         }
 
         // Search filter

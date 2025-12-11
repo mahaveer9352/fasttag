@@ -164,13 +164,13 @@ exports.fastagPayment = async (req, res) => {
     });
     const apiData = response.data;
 
-  
+
     const isSuccess = apiData.statuscode === "TXN";
 
-  
+
     let newBalance = user.wallet.balance;
 
-  
+
     if (isSuccess) {
       newBalance = user.wallet.balance - Number(transactionAmount);
 
@@ -179,11 +179,11 @@ exports.fastagPayment = async (req, res) => {
       });
     }
 
- 
+
     await Transaction.create({
       user_id: loginUser,
       transaction_type: "debit",
-      type: "FASTAG",
+      type: billerId.categoryName || "FASTag",
       amount: Number(transactionAmount),
       charge: 0,
       gst: 0,
@@ -195,8 +195,8 @@ exports.fastagPayment = async (req, res) => {
       payment_mode: paymentMode,
       transaction_reference_id: apiData?.data?.txnReferenceId || externalRef,
       description: isSuccess
-        ? `FASTag Recharge Successful (${apiData?.data?.billerDetails?.name})`
-        : "FASTag Recharge Failed",
+        ? `Recharge Successful (${apiData?.data?.billerDetails?.name})`
+        : "Recharge Failed",
       meta: {
         api_raw: apiData,
         billerId,
