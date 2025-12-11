@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const instantPayRoutes = require("./routes/instantPay");
 
 const path = require('path');
+const topup = require('./routes/topuproute');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/topup', topup); 
 app.use("/api/instantpay", instantPayRoutes);
 
 
@@ -30,4 +32,4 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});
+}); 
