@@ -9,7 +9,15 @@ const blogSchema = new mongoose.Schema(
     thumbnail: { type: String }, // image
     author: { type: String, default: "Admin" }
   },
-  { timestamps: true }
+  { timestamps: true ,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
+blogSchema.virtual("thumbnailUrl").get(function () {
+  if (!this.thumbnail) return null;
+  return `${BASE_URL}${this.thumbnail}`;
+});
 module.exports = mongoose.model("Blog", blogSchema);

@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
     firstName: { type: String, default: "" },
     lastName: { type: String, default: "" },
 
-    email: { type: String, unique: true, sparse: true, lowercase: true },
+    email: { type: String, sparse: true, lowercase: true },
     mobile: { type: String, required: true },
 
     profileImage: { type: String },
