@@ -7,31 +7,6 @@ const logApiCall = require("./logs");
 const { default: axios } = require("axios");
 
 
-const merchant_identifier = process.env.ZAAKPAY_MERCHANT_CODE || "b19e8f103bce406cbd3476431b6b7973"
-const secretKey = process.env.ZAAKPAY_SECRET_KEY || "0678056d96914a8583fb518caf42828a";
-
-
-function generateZaakpayChecksum(params, secretKey) {
-    // 1️⃣ Filter out null, undefined, or empty values
-    const filteredParams = Object.keys(params)
-        .filter((key) => params[key] !== null && params[key] !== undefined && params[key] !== "")
-        .sort() // 2️⃣ Sort alphabetically
-        .map((key) => `${key}=${params[key]}`) // 3️⃣ Combine key=value
-        .join("&") + "&"; // 4️⃣ Append & at end
-
-    console.log("✅ String used for checksum:", filteredParams);
-
-    // 5️⃣ Generate HMAC SHA256
-    const checksum = crypto
-        .createHmac("sha256", secretKey)
-        .update(filteredParams)
-        .digest("hex");
-
-    console.log("✅ Generated Checksum:", checksum);
-    return checksum;
-}
-
-
 exports.generatePayment = async (req, res, next) => {
     const session = await mongoose.startSession();
     session.startTransaction();

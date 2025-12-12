@@ -4,7 +4,9 @@ const {
   getBillerList,
   getBillerDetails,
   preEnquiry,
-  fastagPayment
+  fastagPayment,
+  startFastagPayment,
+  callbackPayIn
 } = require("../controllers/instantPayController");
 const auth = require("../middleware/auth");
 
@@ -12,7 +14,9 @@ const auth = require("../middleware/auth");
 router.post("/billers", getBillerList);
 router.post("/biller-details", getBillerDetails);
 router.post("/pre-enquiry", preEnquiry);
-router.post("/payment",auth, fastagPayment);
+router.post("/start-fastag-payment", startFastagPayment);
+router.post("/start-fastag-payment/callback", callbackPayIn);
+router.post("/payment", auth, fastagPayment);
 
 
 module.exports = router;
