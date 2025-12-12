@@ -16,6 +16,7 @@ const upload = require("../middleware/upload");
 // CREATE BLOG (Admin)
 router.post("/create", auth,admin, upload.single("thumbnail"), createBlog);
 
+
 // UPDATE BLOG (Admin)
 router.put("/:slug", auth, admin, upload.single("thumbnail"), updateBlog);
 
