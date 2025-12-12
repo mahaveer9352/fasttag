@@ -378,7 +378,10 @@ exports.getAdminDashboard = async (req, res) => {
         // 2️⃣ TOTAL FASTAG RECHARGES (all-time)
         // Replace Recharge with your FASTag recharge model
         // --------------------------------------
-        // const totalFastagRecharges = await Recharge.countDocuments();
+        const totalFastagRecharges = await Transaction.countDocuments({
+            type: "FASTag",
+            status: "Success"
+        });
 
         // --------------------------------------
         // 3️⃣ TOTAL WALLET TOP-UPS (Credit transactions)
@@ -452,7 +455,7 @@ exports.getAdminDashboard = async (req, res) => {
             success: true,
             data: {
                 totalUsers,
-                totalFastagRecharges: 10,
+                totalFastagRecharges: totalFastagRecharges ? totalFastagRecharges : 0,
                 totalWalletTopups,
                 rechargeVolume: volume,
                 today: {
