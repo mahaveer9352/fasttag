@@ -14,7 +14,7 @@ const TransactionSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            default: "Top-up"
+            default: "Recharge"
         },
         amount: {
             type: Number,

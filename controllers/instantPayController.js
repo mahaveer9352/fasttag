@@ -257,7 +257,7 @@ exports.startFastagPayment = async (req, res) => {
       amount,
       status: "Pending",
       transaction_type: "debit",
-      type: "FASTAG",
+      type: billerId.categoryName || "Recharge",
       balance_after: 0,
       fastagMeta: billerId,
       enquiryReferenceId: enquiryReferenceId,
