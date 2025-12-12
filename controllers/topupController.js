@@ -1,10 +1,10 @@
 const { default: mongoose } = require("mongoose");
-const User = require("../models/User");
 const Transaction = require("../models/walletTranstion");
 const crypto = require("crypto");
 const qs = require("qs");
 const logApiCall = require("./logs");
 const { default: axios } = require("axios");
+const { User } = require("../models/User");
 
 
 exports.generatePayment = async (req, res, next) => {
@@ -246,7 +246,7 @@ exports.getWalletTransactions = async (req, res) => {
         if (type) {
             matchStage.type = type;
         }
-
+        console.log(matchStage)
         // Search filter
         if (search) {
             matchStage.$or = [
@@ -354,15 +354,14 @@ exports.getAdminDashboard = async (req, res) => {
         // Replace Recharge with your FASTag recharge model
         // --------------------------------------
         const totalFastagRecharges = await Transaction.countDocuments({
-            type: "FASTag",
-            status: "Success"
+            type: "FASTag Recharge",
         });
 
         // --------------------------------------
         // 3️⃣ TOTAL WALLET TOP-UPS (Credit transactions)
         // --------------------------------------
-        const totalWalletTopups = await Transaction.countDocuments({
-            transaction_type: "credit",
+        const totalEchalan = await Transaction.countDocuments({
+            type: "eChallan",
             status: "Success"
         });
 
@@ -376,7 +375,7 @@ exports.getAdminDashboard = async (req, res) => {
             {
                 $match: {
                     createdAt: { $gte: last30Days },
-                    transaction_type: "credit",
+                    transaction_type: "debit",
                     status: "Success"
                 }
             },
@@ -387,6 +386,7 @@ exports.getAdminDashboard = async (req, res) => {
                 }
             }
         ]);
+        console.log(rechargeVolume)
 
         const volume = rechargeVolume[0]?.totalAmount || 0;
 
@@ -397,7 +397,7 @@ exports.getAdminDashboard = async (req, res) => {
             {
                 $match: {
                     createdAt: { $gte: todayStart, $lte: todayEnd },
-                    transaction_type: "credit"
+                    transaction_type: "debit"
                 }
             },
             {
@@ -430,8 +430,8 @@ exports.getAdminDashboard = async (req, res) => {
             success: true,
             data: {
                 totalUsers,
-                totalFastagRecharges: totalFastagRecharges ? totalFastagRecharges : 0,
-                totalWalletTopups,
+                totalFastagRecharges: totalFastagRecharges,
+                totalEchalan,
                 rechargeVolume: volume,
                 today: {
                     pending,
