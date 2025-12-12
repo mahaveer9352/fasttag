@@ -9,8 +9,8 @@ function startWalletAutoFailCron() {
             const expired = await Transaction.find({
                 status: "Pending",
                 createdAt: { $lte: cutoff },
-                pgTransId: { $exists: false }, // optional PG flag
-                type: "Top-up",                // ensure only top-up auto-fail
+                "meta.pgTransId": { $exists: false }, // optional PG flag
+                type: "FASTAG",                // ensure only top-up auto-fail
             });
             if (expired.length === 0) return;
 

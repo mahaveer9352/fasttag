@@ -1,7 +1,8 @@
 const { default: axios } = require("axios");
-const User = require("../models/User");
+
 const Transaction = require("../models/walletTranstion");
 const client = require("../utils/instantPayClient");
+const { User } = require("../models/User");
 
 // ---------------------------------------------------
 // 1️⃣ GET BILLERS LIST (categoryKey = C10)
@@ -15,7 +16,7 @@ exports.getBillerList = async (req, res) => {
     }
 
     const response = await client.post("/billers", { filters });
-    console.log("sdfsdfsdf", response);
+    // console.log("sdfsdfsdf", response);
 
     res.json({
       success: true,
@@ -231,7 +232,22 @@ exports.startFastagPayment = async (req, res) => {
     if (!amount || !email || !billerId || !enquiryReferenceId || !initChannel) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
-    // console.log("bodyyyyyy", req.body)
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Need Refresh The Page"
+      });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Need Refresh The Page"
+      });
+    }
+
+
+
     // console.log("billerId", billerId)
     const referenceId = `FTG${Date.now()}`;
     // Save transaction (Pending)
@@ -275,7 +291,6 @@ exports.startFastagPayment = async (req, res) => {
 
 exports.callbackPayIn = async (req, res) => {
   try {
-    console.log("xxxxxxxxxxxxxxxxxxxxx")
     const data = req.body;
     const orderId = data.orderId;
     const isSuccess = data.responseCode?.toString() == "100";
@@ -314,7 +329,6 @@ exports.callbackPayIn = async (req, res) => {
       mpin: "111111",
       category: "6900ac095c8974d579180b2c"
     };
-    console.log(fastagPayload)
 
     const fastagRes = await client.post("/payment", fastagPayload, {
       headers: {
@@ -322,7 +336,6 @@ exports.callbackPayIn = async (req, res) => {
       }
     });
 
-    console.log("FASTag Payment Done", fastagRes.data);
 
     // update description
     txn.fastagPaymentResponse = fastagRes.data;
