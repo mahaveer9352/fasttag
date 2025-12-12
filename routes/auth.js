@@ -1,29 +1,13 @@
-const express = require('express');
-const router = express.Router();
+const router = require("express").Router();
+const controller = require("../controllers/authController");
 
-const { register, login, getProfile, updateProfile, getAllUsers, getUserById } = require('../controllers/authController');
+// OTP
+router.post("/send-otp", controller.sendOtp);
+router.post("/verify-otp", controller.verifyOtp);
 
-const upload = require('../middleware/upload');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
-
-// REGISTER (with image upload)
-router.post('/register', upload.single('profileImage'), register);
-
-// LOGIN
-router.post('/login', login);
-
-// GET USER PROFILE (protected)
-router.get('/profile', auth, getProfile);
-
-router.put('/update-profile', auth , upload.single("profileImage"), updateProfile);
-
-
-// GET ALL USERS (admin only)
-router.get('/all-users', auth, admin, getAllUsers);
-
-// GET SINGLE USER
-router.get('/user/:id', auth, getUserById);
-
+// USERS
+router.get("/", controller.getUsers);
+router.get("/:id", controller.getUserById);
+router.put("/:id", controller.updateUser);
 
 module.exports = router;
