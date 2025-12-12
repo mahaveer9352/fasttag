@@ -1,3 +1,4 @@
+const { default: axios } = require("axios");
 const User = require("../models/User");
 const Transaction = require("../models/walletTranstion");
 const client = require("../utils/instantPayClient");
@@ -91,7 +92,6 @@ exports.preEnquiry = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
 
 
 // ---------------------------------------------------
@@ -219,5 +219,119 @@ exports.fastagPayment = async (req, res) => {
       message: "Payment Failed",
       error: error?.response?.data || error.message
     });
+  }
+};
+
+
+// direct pay without wallet
+exports.startFastagPayment = async (req, res) => {
+  try {
+    const { amount, email, billerId, enquiryReferenceId, inputParameters, userId, initChannel } = req.body;
+
+    if (!amount || !email || !billerId || !enquiryReferenceId || !initChannel) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+    // console.log("bodyyyyyy", req.body)
+    // console.log("billerId", billerId)
+    const referenceId = `FTG${Date.now()}`;
+    // Save transaction (Pending)
+    const txn = await Transaction.create({
+      user_id: userId || "69391335a77694961cfc623b",
+      transaction_reference_id: referenceId,
+      amount,
+      status: "Pending",
+      transaction_type: "debit",
+      type: "FASTAG",
+      balance_after: 0,
+      fastagMeta: billerId,
+      enquiryReferenceId: enquiryReferenceId,
+      inputParameters: inputParameters,
+      initChannel: initChannel
+    });
+    console.log("txn", txn)
+    // PAYMENT GATEWAY CALL
+    const payload = {
+      amount,
+      email,
+      reference: referenceId
+    };
+
+    const pgRes = await axios.post("https://server.finuniques.in/api/v1/payment/payin",
+      payload, {
+      headers: { "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTg0M2E4ZWZmNzA0ZjUwOWVlNzkyZSIsInJvbGUiOiJSZXRhaWxlciIsIm1vYmlsZU51bWJlciI6IjgwMDM3Njc3MzIiLCJpYXQiOjE3NjUzNjI3MjUsImV4cCI6MTc2Nzk1NDcyNX0.jCgTJTxbX3wQXri3YEpwV21lmVTQ-1BKWij491IQ_oo" }
+    }
+    )
+
+    return res.json({
+      success: true,
+      redirectURL: pgRes.data?.data?.redirectURL,
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Payment init failed" });
+  }
+};
+
+exports.callbackPayIn = async (req, res) => {
+  try {
+    console.log("xxxxxxxxxxxxxxxxxxxxx")
+    const data = req.body;
+    const orderId = data.orderId;
+    const isSuccess = data.responseCode?.toString() == "100";
+
+    const txn = await Transaction.findOne({ transaction_reference_id: orderId });
+    console.log("txn", txn)
+    if (!txn) return res.send("Transaction Not Found");
+
+    // Update transaction status
+    txn.status = isSuccess ? "Success" : "Failed";
+    txn.meta = data;
+    await txn.save();
+
+    if (!isSuccess) {
+      return res.send("Payment Failed");
+    }
+
+    // -------------------------------------
+    // FASTAG PAYMENT API TRIGGER AFTER CALLBACK
+    // -------------------------------------
+    const generateExternalRef = () => {
+      const timestamp = Date.now();
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      return `EXT${timestamp}${randomNum}`;
+    };
+
+    const fastagPayload = {
+      user_id: "691843a8eff704f509ee792e",
+      billerId: txn.fastagMeta,
+      externalRef: generateExternalRef(),
+      enquiryReferenceId: txn.enquiryReferenceId,
+      inputParameters: txn.inputParameters,
+      transactionAmount: txn.amount,
+      paymentMode: "Cash",
+      initChannel: txn.initChannel,
+      mpin: "111111",
+      category: "6900ac095c8974d579180b2c"
+    };
+    console.log(fastagPayload)
+
+    const fastagRes = await client.post("/payment", fastagPayload, {
+      headers: {
+        "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTg0M2E4ZWZmNzA0ZjUwOWVlNzkyZSIsInJvbGUiOiJSZXRhaWxlciIsIm1vYmlsZU51bWJlciI6IjgwMDM3Njc3MzIiLCJpYXQiOjE3NjUzNjI3MjUsImV4cCI6MTc2Nzk1NDcyNX0.jCgTJTxbX3wQXri3YEpwV21lmVTQ-1BKWij491IQ_oo"
+      }
+    });
+
+    console.log("FASTag Payment Done", fastagRes.data);
+
+    // update description
+    txn.fastagPaymentResponse = fastagRes.data;
+    await txn.save();
+
+    return res.send("Payment Successful & FASTag Recharge Done");
+
+  } catch (error) {
+    console.error("Callback Error:", error);
+    res.status(500).send("Internal callback error");
   }
 };

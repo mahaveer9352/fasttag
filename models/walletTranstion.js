@@ -42,7 +42,6 @@ const TransactionSchema = new mongoose.Schema(
         },
         balance_after: {
             type: Number,
-            required: true,
         },
         status: {
             type: String,
@@ -60,11 +59,33 @@ const TransactionSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        enquiryReferenceId: {
+            type: String,
+            default: ""
+        },
+        initChannel: {
+            type: String,
+            default: ""
+        },
+        inputParameters: {
+            type: Object,
+            default: ""
+        },
         meta: {
             type: Map,
             of: mongoose.Schema.Types.Mixed,
             default: {},
         },
+        fastagMeta: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {},
+        },
+        fastagPaymentResponse: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {},
+        }
+
+
     },
     {
         timestamps: true,
