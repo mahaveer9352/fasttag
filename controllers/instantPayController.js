@@ -232,17 +232,18 @@ exports.startFastagPayment = async (req, res) => {
     if (!amount || !email || !billerId || !enquiryReferenceId || !initChannel) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
+    console.log("userId", userId)
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "Need Refresh The Page"
+        message: "Need login & Refresh The Pagee"
       });
     }
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Need Refresh The Page"
+        message: "Need login & Refresh The Page"
       });
     }
 
@@ -277,10 +278,11 @@ exports.startFastagPayment = async (req, res) => {
       headers: { "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTg0M2E4ZWZmNzA0ZjUwOWVlNzkyZSIsInJvbGUiOiJSZXRhaWxlciIsIm1vYmlsZU51bWJlciI6IjgwMDM3Njc3MzIiLCJpYXQiOjE3NjUzNjI3MjUsImV4cCI6MTc2Nzk1NDcyNX0.jCgTJTxbX3wQXri3YEpwV21lmVTQ-1BKWij491IQ_oo" }
     }
     )
+    console.log("pgRes", pgRes.data)
 
     return res.json({
       success: true,
-      redirectURL: pgRes.data?.data?.redirectURL,
+      redirectURL: pgRes.data?.data?.redirectEx,
     });
 
   } catch (err) {

@@ -331,12 +331,14 @@ exports.getWalletTransactions = async (req, res) => {
 exports.getAdminDashboard = async (req, res) => {
     try {
         // Allow only admin & super admin
-        if (req.userRole !== "admin" && req.userRole !== "super_admin") {
+        // console.log("xxxxxx", req)
+        if (req.userRole !== "admin" || req.userRole !== "super_admin") {
             return res.status(403).json({
                 success: false,
-                message: "Access denied. Admin only."
+                message: "Access denied. Use Admin only."
             });
         }
+
 
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
